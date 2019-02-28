@@ -10,32 +10,71 @@ def parse_arguments():
                         required=True)
     return parser.parse_args()
 
-def process_input(line):
-    line.strip()
-    fields = line.split(',')
-    obj = MyClass(
-        name=fields[0],
-        surname=fields[1]
-    )
-    return obj
+def process_input(input_file):
+    photos = {
+        'H': [],
+        'V': []
+    }
+    # import pdb; pdb.set_trace()
+    id = 0
+    for line in input_file:
+        line = line.strip()
+        fields = line.split(' ')
+        # H 3 cat beach sun
+        try:    
+            photos[fields[0]].append([id, False ,[ fields[i+2] for i in range(0, int(fields[1])) ]])
+            id += 1
+        except:
+            pass
+        
+
+    return photos
+
 
 def logic(obj):
     return obj
 
 def process_output(res, output):
-    output.write(res.__str__())
+
+    # 3
+# 0
+# 3
+# 1 2
+# The slideshow has 3 slides
+# First slide contains photo 0
+# Second slide contains photo 3
+# Third slide contains photos 1 and 2
+    output.write(str(len(res)) + "\n")
+    for slides in res:
+        for photo in slides:
+            output.write(str(photo) + " ")
+        output.write("\n")
+
 
 def main():
     args = parse_arguments()
+    photos = {}
+    with open(args.filename, 'r') as input_file:
+        photos = process_input(input_file)
+    
 
-    with open(args.filename, 'r') as input, \
-         open('output.txt', 'w') as output:
-        for line in input:
-            obj = process_input(line)
+    # crear slideshow
+    slideshow = []
+    for slide in photos['H']:
+        slideshow.append((slide[0],))
+        slide[1] = True
 
-            res = logic(obj)
+    i = 0
+    while i < len(photos['V']):
+        slideshow.append((photos['V'][i][0], photos['V'][i+1][0]))
+        photos['V'][i][1] = True
+        photos['V'][i+1][1] = True
+        i += 2
 
-            process_output(res, output)
+
+    with open(args.filename + '.out', 'w') as output:
+        process_output(slideshow, output)
+
 
 if __name__ == '__main__':
     main()
