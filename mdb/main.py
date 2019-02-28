@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-#prova git
+
 import argparse
-from mdb.classes import MyClass
 
 
 def parse_arguments():
@@ -57,19 +56,82 @@ def main():
     with open(args.filename, 'r') as input_file:
         photos = process_input(input_file)
     
+    photos['V'].sort(key=lambda x: len(x[2]), reverse=True)
+    slides_verticals = []
+    i = 0
+    while i < len(photos['V']):
+        slides_verticals.append(
+            [
+                # -1*(i+1
+                (photos['V'][i][0], photos['V'][i+1][0]), 
+                False, 
+                list ( set(photos['V'][i][2] + photos['V'][i+1][2]) )
+            ]
+        )
+        i += 2
+
 
     # crear slideshow
     slideshow = []
-    for slide in photos['H']:
-        slideshow.append((slide[0],))
-        slide[1] = True
+    # import pdb;pdb.set_trace()
+    photos['H'].extend(slides_verticals)
 
-    i = 0
-    while i < len(photos['V']):
-        slideshow.append((photos['V'][i][0], photos['V'][i+1][0]))
-        photos['V'][i][1] = True
-        photos['V'][i+1][1] = True
-        i += 2
+    photos['H'].sort(key=lambda x: len(x[2]), reverse=True)
+    count = 0
+
+    for slide in photos['H']:
+        if count%10 == 0:
+            print(count)
+        count += 1
+        if slide[1] == True:
+            continue
+        inner_count = 0
+        for slide_comp in photos['H']:
+            if slide_comp[1] == True or slide[0] == slide_comp[0]:
+                continue
+            # 
+            # inner_count to skip lasting iterations
+            # 
+            compare = 2
+            interaccio = list( set(slide[2]) & set(slide_comp[2]))
+            slide1 = list(set(slide[2]).difference(interaccio))
+            slide2 = list(set(slide_comp[2]).difference(interaccio))
+            interes = min (len(interaccio), len(slide1), len(slide2) )
+            if interes > compare or inner_count == 100:
+                # print interes
+
+                # if inner_count == 100:
+                #     compare = 4
+                # if inner_count == 300:
+                #     compare = 3
+                # if inner_count == 500:
+                #     compare = 2
+                # if inner_count == 800:
+                #     compare = 1
+
+                inner_count = 0
+                if isinstance(slide[0], tuple):
+                    slideshow.append(slide[0])
+                else:
+                    slideshow.append((slide[0],))
+                if isinstance(slide_comp[0], tuple):
+                    slideshow.append(slide_comp[0])
+                else:
+                    slideshow.append((slide_comp[0],))
+                slide[1] = True
+                slide_comp[1] = True
+                break
+            inner_count += 1
+    
+    for slide in photos['H']:
+        if slide[1] == True:
+            continue
+        if isinstance(slide[0], tuple):   
+            slideshow.append(slide[0])
+        else:
+            slideshow.append((slide[0],))
+        slide[1] = True           
+
 
 
     with open(args.filename + '.out', 'w') as output:
